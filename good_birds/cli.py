@@ -130,7 +130,7 @@ def main(
             for p in burst.photos:
                 try:
                     ext = p.info.path.suffix.lower()
-                    if ext in ('.cr2', '.cr3', '.nef', '.arw', '.raw'):
+                    if ext in ('.cr2', '.cr3', '.nef', '.arw', '.raw', '.orf'):
                         with rawpy.imread(str(p.info.path)) as raw:
                             thumb = raw.extract_thumb()
                             if thumb.format == rawpy.ThumbFormat.JPEG:
