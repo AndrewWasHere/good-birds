@@ -79,6 +79,32 @@ def write_xmp_sidecar(file_path: Path, rating: int) -> bool:
         print(f"Error writing sidecar for {file_path.name}: {e}")
         return False
 
+def write_rrdata_sidecar(file_path: Path, rating: int) -> bool:
+    """
+    Write a minimal rrdata sidecar file alongside the image.
+
+    Creates a file named <original_filename>.xmp (e.g. IMG_1234.CR2.rrdata)
+    containing the minimum JSON data required by RapidRAW to display
+    star ratings, as it reads from sidecar files rather than embedded metadata.
+
+    Returns True if successful, False otherwise.
+    """
+    sidecar_path = file_path.parent / f"{file_path.name}.rrdata"
+    json_content = textwrap.dedent(f"""\
+        {{
+            "version": 1,
+            "rating": {rating},
+            "adjustments": {{}},
+            "tags": null
+        }}
+    """)
+
+    try:
+        sidecar_path.write_text(json_content, encoding="utf-8")
+        return True
+    except Exception as e:
+        print(f"Error writing rrdata sidecar for {file_path.name}: {e}")
+        return False
 
 def write_rating(file_path: Path, rating: int, dry_run: bool = False, sidecar: bool = True) -> bool:
     """
