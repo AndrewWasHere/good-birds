@@ -63,6 +63,7 @@ def normalize_scores(burst_photos: list[ScoredPhoto]) -> None:
 @click.option('--exclude-non-raw', is_flag=True, help='Only scan and score RAW files, skipping JPG, HEIF, WEBP.')
 @click.option('--sidecar/--no-sidecar', default=True, help='Write XMP sidecar files (.xmp) for Darktable/RawTherapee/RapidRaw compatibility (default: enabled).')
 @click.option('--rr-sidecar/--no-rr-sidecar', default=False, help='Write RapidRaw sidecar files (.rrdata) for native RapidRaw compatibility (default: disabled).')
+@click.option('--write-exif/--no-write-exif', default=True, help='Write EXIF data to image (default: enabled).')
 def main(
     directory: Path,
     burst_threshold: float,
@@ -76,7 +77,8 @@ def main(
     log: bool,
     exclude_non_raw: bool,
     sidecar: bool,
-    rr_sidecar: bool
+    rr_sidecar: bool,
+    write_exif: bool
 ):
     """Good Birds - Sort and rate bird photography RAW bursts."""
     
@@ -96,6 +98,11 @@ def main(
     logger.info(f"Target directory: {directory}")
     logger.info(f"Arguments: burst_threshold={burst_threshold}, sharpness_weight={sharpness_weight}, exposure_weight={exposure_weight}, center_weight={center_weight}, dry_run={dry_run}")
     
+    if not write_exif and not sidecar and not rr_sidecar:
+        logger.error("write_exif, sidecar, and rr_sidecar are all False -- no rating data would have been written.")
+        console.print("Please set at least one of the following command line arguments: --write-exif, --sidecar, --rr-sidecar")
+        sys.exit(1)
+
     if not dry_run and not is_exiftool_installed():
         logger.error("exiftool is not installed or not in PATH.")
         console.print("[bold red]Error:[/] exiftool is not installed or not in PATH.")
@@ -207,7 +214,7 @@ def main(
             
             for p in burst.photos:
                 rating = rating_best if p is best else rating_rest
-                success = write_rating(p.info.path, rating, dry_run=dry_run, sidecar=sidecar, rr_sidecar=rr_sidecar)
+                success = write_rating(p.info.path, rating, dry_run=dry_run, sidecar=sidecar, rr_sidecar=rr_sidecar, write_exif=write_exif)
                 if not success:
                     logger.error(f"Failed to write rating to {p.info.path.name}")
                     if verbose:

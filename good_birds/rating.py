@@ -106,7 +106,7 @@ def write_rrdata_sidecar(file_path: Path, rating: int) -> bool:
         print(f"Error writing rrdata sidecar for {file_path.name}: {e}")
         return False
 
-def write_rating(file_path: Path, rating: int, dry_run: bool = False, sidecar: bool = True, rr_sidecar: bool = False) -> bool:
+def write_rating(file_path: Path, rating: int, dry_run: bool = False, sidecar: bool = True, rr_sidecar: bool = False, write_exif: bool = True) -> bool:
     """
     Write star rating metadata to a file using exiftool and an XMP sidecar.
     
@@ -121,6 +121,9 @@ def write_rating(file_path: Path, rating: int, dry_run: bool = False, sidecar: b
 
     Optionally writes an rrdata sidecar file (<filename>.rrdata) for RapidRaw.
     Sidecar generation is controlled by the `rr_sidecar` parameter (default: False).
+
+    Optionally skip writing EXIF data to the image.
+    Skipping writing EXIF data is controlled by the `update_image` parameter (default: True).
     
     Returns True if successful, False otherwise.
     """
@@ -136,25 +139,26 @@ def write_rating(file_path: Path, rating: int, dry_run: bool = False, sidecar: b
     rating_percent = RATING_TO_PERCENT.get(rating, 0)
         
     try:
-        # Construct exact command array.
-        # -overwrite_original prevents creating a _original backup file
-        # Three tags for full compatibility with Windows, DigiKam, Lightroom, etc.
-        cmd = exiftool_cmd + [
-            "-overwrite_original", 
-            f"-XMP:Rating={rating}",
-            f"-XMP:RatingPercent={rating_percent}",
-            f"-Rating={rating}",
-            str(file_path)
-        ]
-        
-        # Run silently unless there's an error
-        result = subprocess.run(
-            cmd, 
-            stdout=subprocess.PIPE, 
-            stderr=subprocess.PIPE,
-            text=True,
-            check=True
-        )
+        if write_exif:
+            # Construct exact command array.
+            # -overwrite_original prevents creating a _original backup file
+            # Three tags for full compatibility with Windows, DigiKam, Lightroom, etc.
+            cmd = exiftool_cmd + [
+                "-overwrite_original", 
+                f"-XMP:Rating={rating}",
+                f"-XMP:RatingPercent={rating_percent}",
+                f"-Rating={rating}",
+                str(file_path)
+            ]
+            
+            # Run silently unless there's an error
+            result = subprocess.run(
+                cmd, 
+                stdout=subprocess.PIPE, 
+                stderr=subprocess.PIPE,
+                text=True,
+                check=True
+            )
         
         # Also write an XMP sidecar for Darktable/RawTherapee/RapidRaw
         if sidecar:
