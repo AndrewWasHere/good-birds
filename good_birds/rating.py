@@ -123,7 +123,7 @@ def write_rating(file_path: Path, rating: int, dry_run: bool = False, sidecar: b
     Sidecar generation is controlled by the `rr_sidecar` parameter (default: False).
 
     Optionally skip writing EXIF data to the image.
-    Skipping writing EXIF data is controlled by the `update_image` parameter (default: True).
+    Skipping writing EXIF data is controlled by the `write_exif` parameter (default: True).
     
     Returns True if successful, False otherwise.
     """
