@@ -106,7 +106,7 @@ def write_rrdata_sidecar(file_path: Path, rating: int) -> bool:
         print(f"Error writing rrdata sidecar for {file_path.name}: {e}")
         return False
 
-def write_rating(file_path: Path, rating: int, dry_run: bool = False, sidecar: bool = True) -> bool:
+def write_rating(file_path: Path, rating: int, dry_run: bool = False, sidecar: bool = True, rr_sidecar: bool = False) -> bool:
     """
     Write star rating metadata to a file using exiftool and an XMP sidecar.
     
@@ -118,6 +118,9 @@ def write_rating(file_path: Path, rating: int, dry_run: bool = False, sidecar: b
     Optionally writes an XMP sidecar file (<filename>.xmp) for applications that
     read ratings from sidecar files (Darktable, RawTherapee, RapidRaw).
     Sidecar generation is controlled by the `sidecar` parameter (default: True).
+
+    Optionally writes an rrdata sidecar file (<filename>.rrdata) for RapidRaw.
+    Sidecar generation is controlled by the `rr_sidecar` parameter (default: False).
     
     Returns True if successful, False otherwise.
     """
@@ -156,6 +159,12 @@ def write_rating(file_path: Path, rating: int, dry_run: bool = False, sidecar: b
         # Also write an XMP sidecar for Darktable/RawTherapee/RapidRaw
         if sidecar:
             write_xmp_sidecar(file_path, rating)
+
+        # Also write an rrdata sidecar for RapidRaw
+        # Only write the five star rating sidecars, since RapidRaw will ignore
+        # unrated files when filtering for ratings
+        if rr_sidecar and rating == 5:
+            write_rrdata_sidecar(file_path, rating)
         
         return True
         

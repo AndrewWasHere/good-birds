@@ -52,6 +52,10 @@ def test_write_rating_success(mock_run, mock_get_cmd, tmp_path):
     content = sidecar.read_text(encoding="utf-8")
     assert 'xmp:Rating="3"' in content
 
+    # Verify rr_sidecar was not created
+    rr_sidecar = tmp_path / "dummy.CR2.rrdata"
+    assert not rr_sidecar.exists()
+
 @patch("good_birds.rating.get_exiftool_cmd", return_value=["exiftool"])
 @patch("good_birds.rating.subprocess.run")
 def test_write_rating_failure(mock_run, mock_get_cmd):
@@ -79,6 +83,49 @@ def test_write_rating_no_sidecar(mock_run, mock_get_cmd, tmp_path):
     sidecar = tmp_path / "test.CR2.xmp"
     assert not sidecar.exists()
 
+    # Verify rr_sidecar was not created
+    rr_sidecar = tmp_path / "test.CR2.rrdata"
+    assert not rr_sidecar.exists()
+
+@patch("good_birds.rating.get_exiftool_cmd", return_value=["exiftool"])
+@patch("good_birds.rating.subprocess.run")
+def test_write_ratings_rr_sidecar(mock_run, mock_get_cmd, tmp_path):
+    mock_run.return_value = MagicMock(returncode=0)
+    
+    dummy = tmp_path / "test.CR2"
+    dummy.touch()
+    result = write_rating(dummy, 5, rr_sidecar=True)
+    
+    assert result is True
+    mock_run.assert_called_once()
+    
+    # Verify sidecar was also created
+    sidecar = tmp_path / "test.CR2.xmp"
+    assert sidecar.exists()
+
+    # Verify rr_sidecar was created
+    rr_sidecar = tmp_path / "test.CR2.rrdata"
+    assert rr_sidecar.exists()
+
+@patch("good_birds.rating.get_exiftool_cmd", return_value=["exiftool"])
+@patch("good_birds.rating.subprocess.run")
+def test_write_ratings_rr_sidecar_low_rating(mock_run, mock_get_cmd, tmp_path):
+    mock_run.return_value = MagicMock(returncode=0)
+    
+    dummy = tmp_path / "test.CR2"
+    dummy.touch()
+    result = write_rating(dummy, 3, rr_sidecar=True)  # rating != 5
+    
+    assert result is True
+    mock_run.assert_called_once()
+    
+    # Verify sidecar was also created
+    sidecar = tmp_path / "test.CR2.xmp"
+    assert sidecar.exists()
+
+    # Verify rr_sidecar was not created
+    rr_sidecar = tmp_path / "test.CR2.rrdata"
+    assert not rr_sidecar.exists()
 
 # --- XMP Sidecar Tests ---
 

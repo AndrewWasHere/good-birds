@@ -62,6 +62,7 @@ def normalize_scores(burst_photos: list[ScoredPhoto]) -> None:
 @click.option('--log', is_flag=True, help='Enable writing debug logs to good_birds.log in the target directory')
 @click.option('--exclude-non-raw', is_flag=True, help='Only scan and score RAW files, skipping JPG, HEIF, WEBP.')
 @click.option('--sidecar/--no-sidecar', default=True, help='Write XMP sidecar files (.xmp) for Darktable/RawTherapee/RapidRaw compatibility (default: enabled).')
+@click.option('--rr-sidecar/--no-rr-sidecar', default=False, help='Write RapidRaw sidecar files (.rrdata) for native RapidRaw compatibility (default: disabled).')
 def main(
     directory: Path,
     burst_threshold: float,
@@ -74,7 +75,8 @@ def main(
     verbose: bool,
     log: bool,
     exclude_non_raw: bool,
-    sidecar: bool
+    sidecar: bool,
+    rr_sidecar: bool
 ):
     """Good Birds - Sort and rate bird photography RAW bursts."""
     
@@ -205,7 +207,7 @@ def main(
             
             for p in burst.photos:
                 rating = rating_best if p is best else rating_rest
-                success = write_rating(p.info.path, rating, dry_run=dry_run, sidecar=sidecar)
+                success = write_rating(p.info.path, rating, dry_run=dry_run, sidecar=sidecar, rr_sidecar=rr_sidecar)
                 if not success:
                     logger.error(f"Failed to write rating to {p.info.path.name}")
                     if verbose:
